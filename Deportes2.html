@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actividades Deportivas Corregidas</title>
+    <style>
+        /* Estilos generales del cuerpo */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px; /* Espacio entre las dos actividades */
+        }
+
+        /* Contenedor principal del juego */
+        .game-container {
+            width: 100%;
+            max-width: 900px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Títulos y descripciones */
+        h1 {
+            color: #1a237e;
+            text-align: center;
+            border-bottom: 2px solid #3949ab;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        p {
+            text-align: center;
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 25px;
+        }
+
+        /* --- ESTILOS ACTIVIDAD 1: VOCABULARIO --- */
+        #timer-container {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #3f51b5;
+            margin-bottom: 20px;
+            background-color: #e8eaf6;
+            padding: 8px;
+            border-radius: 8px;
+        }
+        .columns-container { display: flex; justify-content: space-around; gap: 20px; }
+        .card-column { flex: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 15px; }
+        .card {
+            background-color: #e8eaf6; border: 2px solid #c5cae9; border-radius: 8px; min-height: 80px;
+            display: flex; justify-content: center; align-items: center; font-size: 1.2em; font-weight: bold;
+            cursor: pointer; transition: transform 0.2s, background-color 0.3s, border-color 0.3s;
+            text-align: center; padding: 5px; user-select: none;
+        }
+        .card:hover { transform: translateY(-5px); border-color: #3949ab; }
+        .card.emoji-card { font-size: 2.5em; }
+        .card.selected { background-color: #bbdefb; border-color: #2196f3; transform: scale(1.05); }
+        .card.correct { background-color: #c8e6c9; border-color: #4caf50; color: #2e7d32; cursor: not-allowed; transform: none; }
+        .card.wrong { background-color: #ffcdd2; border-color: #f44336; animation: shake 0.5s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        
+        /* --- ESTILOS ACTIVIDAD 2: ADIVINA EL DEPORTE --- */
+        #equations-container { display: flex; flex-direction: column; gap: 20px; }
+        .equation-row {
+            display: flex; align-items: center; gap: 15px; background-color: #fafafa;
+            padding: 10px; border-radius: 8px; border: 1px solid #eee;
+        }
+        .equation-formula { font-size: 1.8em; flex-shrink: 0; }
+        .equation-equals { font-size: 1.8em; font-weight: bold; color: #555; }
+        .equation-row input {
+            flex-grow: 1; padding: 12px; font-size: 1.1em; border-radius: 6px;
+            border: 2px solid #c5cae9; transition: border-color 0.3s, background-color 0.3s;
+        }
+        .equation-row input:focus { outline: none; border-color: #3949ab; }
+        .equation-row input.correct { border-color: #4caf50; background-color: #f1f8e9; }
+        .equation-row input.wrong { border-color: #f44336; background-color: #ffebee; }
+        .equation-feedback { font-size: 1.5em; width: 30px; text-align: center; }
+
+        /* --- BOTONES Y ÁREAS DE FEEDBACK --- */
+        .feedback-area { text-align: center; margin-top: 25px; padding: 15px; font-size: 1.3em; font-weight: bold; min-height: 30px; }
+        .button-area { text-align: center; margin-top: 20px; display: flex; gap: 15px; justify-content: center; }
+        button {
+            background-color: #3949ab; color: white; border: none; padding: 12px 25px;
+            font-size: 1em; border-radius: 8px; cursor: pointer; transition: background-color 0.3s;
+        }
+        button:hover { background-color: #1a237e; }
+        button.secondary { background-color: #757575; }
+        button.secondary:hover { background-color: #424242; }
+
+        /* --- DISEÑO RESPONSIVO --- */
+        @media (max-width: 768px) {
+            .columns-container { flex-direction: column; }
+            .card-column { grid-template-columns: repeat(3, 1fr); }
+            h1 { font-size: 1.5em; }
+            .card.emoji-card { font-size: 2em; }
+            .equation-row { flex-wrap: wrap; }
+            .equation-formula { font-size: 1.5em; }
+        }
+        @media (max-width: 480px) { .card-column { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+
+    <!-- ACTIVIDAD 1: RELACIONAR VOCABULARIO -->
+    <div class="game-container" id="game-1">
+        <h1>Actividad 1: Relaciona la Imagen con la Palabra</h1>
+        <p>Haz clic en una imagen y luego en su palabra correspondiente. ¡Encuentra todos los pares!</p>
+        <div id="timer-container">Tiempo: <span id="timer">00:00</span></div>
+        <div class="columns-container">
+            <div id="image-container" class="card-column"></div>
+            <div id="word-container" class="card-column"></div>
+        </div>
+        <div class="feedback-area" id="vocab-feedback"></div>
+        <div class="button-area">
+            <button id="reset-vocab-button" style="display: none;">Jugar de Nuevo</button>
+        </div>
+    </div>
+
+    <!-- ACTIVIDAD 2: ADIVINAR EL DEPORTE -->
+    <div class="game-container" id="game-2">
+        <h1>Actividad 2: Adivina el Deporte con Emojis</h1>
+        <p>Suma los emojis para descifrar el deporte y escribe el nombre en el espacio en blanco.</p>
+        <div id="equations-container"></div>
+        <div class="feedback-area" id="sports-feedback"></div>
+        <div class="button-area">
+            <button id="check-sports-button">Comprobar Respuestas</button>
+            <button id="reset-sports-button" class="secondary">Intentar de Nuevo</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // ==================================================
+            // --- ELEMENTOS GLOBALES Y FUNCIONES AUXILIARES ---
+            // ==================================================
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            let timerInterval;
+            let seconds = 0;
+
+            function playCowSound() {
+                if (!audioContext) return;
+                // Previene error si el usuario interactúa antes de que el contexto de audio esté listo
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.type = 'sawtooth';
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.1);
+                gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.8);
+                oscillator.frequency.setValueAtTime(160, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(80, audioContext.currentTime + 0.6);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 1);
+            }
+
+            function updateTimer() {
+                seconds++;
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                document.getElementById('timer').textContent = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+            }
+
+            function shuffle(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+
+            // ==================================================
+            // --- LÓGICA PARA LA ACTIVIDAD 1: VOCABULARIO ---
+            // ==================================================
+            const vocabData = [
+                { id: 1, emoji: '🪁', word: 'jugar' }, { id: 2, emoji: '👐', word: 'atrapar' },
+                { id: 3, emoji: '🤾‍♂️', word: 'lanzar' }, { id: 4, emoji: '🦘', word: 'saltar' },
+                { id: 5, emoji: '⚽️🦵', word: 'patear' }, { id: 6, emoji: '🥊', word: 'golpear' },
+                { id: 7, emoji: '🏆', word: 'ganar' }, { id: 8, emoji: '😔', word: 'perder' },
+                { id: 9, emoji: '⚽🥅', word: 'meter un gol' }, { id: 10, emoji: '🤼‍♂️', word: 'luchar' },
+                { id: 11, emoji: '👥', word: 'el equipo' }, { id: 12, emoji: '👨‍🏫', word: 'el entrenador' },
+                { id: 13, emoji: '⚖️🟥', word: 'el árbitro' }, { id: 14, emoji: '⚽️', word: 'el balón' },
+                { id: 15, emoji: '🎾', word: 'la pelota' }, { id: 16, emoji: '🏒', word: 'el palo' },
+                { id: 17, emoji: '🏏', word: 'el bate' }, { id: 18, emoji: '🧤', word: 'el guante' }
+            ];
+            const imageContainer = document.getElementById('image-container');
+            const wordContainer = document.getElementById('word-container');
+            const vocabFeedbackEl = document.getElementById('vocab-feedback');
+            const resetVocabButton = document.getElementById('reset-vocab-button');
+            let selectedImage = null, selectedWord = null, correctVocabPairs = 0, lockBoard = false;
+
+            function initVocabGame() {
+                imageContainer.innerHTML = '';
+                wordContainer.innerHTML = '';
+                vocabFeedbackEl.textContent = '';
+                resetVocabButton.style.display = 'none';
+                correctVocabPairs = 0;
+                selectedImage = null; selectedWord = null; lockBoard = false;
+                
+                clearInterval(timerInterval);
+                seconds = 0;
+                document.getElementById('timer').textContent = '00:00';
+                timerInterval = setInterval(updateTimer, 1000);
+                
+                const shuffledVocab = [...vocabData];
+                shuffle(shuffledVocab);
+                const images = shuffledVocab.map(item => ({ id: item.id, emoji: item.emoji }));
+                const words = shuffledVocab.map(item => ({ id: item.id, word: item.word }));
+                shuffle(words);
+
+                images.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'card emoji-card';
+                    card.dataset.id = item.id;
+                    card.textContent = item.emoji;
+                    card.addEventListener('click', handleCardClick);
+                    imageContainer.appendChild(card);
+                });
+                words.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'card word-card';
+                    card.dataset.id = item.id;
+                    card.textContent = item.word;
+                    card.addEventListener('click', handleCardClick);
+                    wordContainer.appendChild(card);
+                });
+            }
+
+            function handleCardClick(e) {
+                if (lockBoard) return;
+                const clickedCard = e.target;
+                if (clickedCard.classList.contains('correct') || clickedCard === selectedImage || clickedCard === selectedWord) return;
+                clickedCard.classList.add('selected');
+                if (clickedCard.classList.contains('emoji-card')) {
+                    if (selectedImage) selectedImage.classList.remove('selected');
+                    selectedImage = clickedCard;
+                } else {
+                    if (selectedWord) selectedWord.classList.remove('selected');
+                    selectedWord = clickedCard;
+                }
+                if (selectedImage && selectedWord) {
+                    lockBoard = true;
+                    if (selectedImage.dataset.id === selectedWord.dataset.id) {
+                        playCowSound();
+                        vocabFeedbackEl.textContent = "¡Correcto!";
+                        vocabFeedbackEl.style.color = '#4caf50';
+                        selectedImage.classList.add('correct');
+                        selectedWord.classList.add('correct');
+                        selectedImage.classList.remove('selected');
+                        selectedWord.classList.remove('selected');
+                        correctVocabPairs++;
+                        selectedImage = null; selectedWord = null; lockBoard = false;
+                        if (correctVocabPairs === vocabData.length) {
+                            clearInterval(timerInterval);
+                            vocabFeedbackEl.innerHTML = `🎉 ¡Felicidades! Completaste la Actividad 1 en <span style="color: #3f51b5;">${document.getElementById('timer').textContent}</span>! 🎉`;
+                            resetVocabButton.style.display = 'inline-block';
+                        }
+                    } else {
+                        vocabFeedbackEl.textContent = "Inténtalo de nuevo";
+                        vocabFeedbackEl.style.color = '#f44336';
+                        selectedImage.classList.add('wrong');
+                        selectedWord.classList.add('wrong');
+                        setTimeout(() => {
+                            selectedImage.classList.remove('wrong', 'selected');
+                            selectedWord.classList.remove('wrong', 'selected');
+                            vocabFeedbackEl.textContent = "";
+                            selectedImage = null; selectedWord = null; lockBoard = false;
+                        }, 1000);
+                    }
+                }
+            }
+            
+            // =======================================================
+            // --- LÓGICA PARA LA ACTIVIDAD 2: ADIVINA EL DEPORTE ---
+            // =======================================================
+            const sportsFormulas = [
+                { id: 1, formula: '🦵 + 🤝 + ⚽️', answers: ['fútbol', 'futbol'] },
+                { id: 2, formula: '🧠 + 🤔 + ♟️', answers: ['ajedrez'] },
+                { id: 3, formula: '💪 + 🤸‍♀️ + 🏸', answers: ['bádminton', 'badminton'] },
+                { id: 4, formula: '🧍 + 🔥 + 🌊', answers: ['natación', 'natacion'] },
+                { id: 5, formula: '💪 + 🎯 + 🏀', answers: ['baloncesto', 'basquetbol', 'basquet'] },
+                { id: 6, formula: '💪 + 🔥 + 🥊', answers: ['boxeo', 'box'] }
+            ];
+            const equationsContainer = document.getElementById('equations-container');
+            const checkSportsButton = document.getElementById('check-sports-button');
+            const resetSportsButton = document.getElementById('reset-sports-button');
+            const sportsFeedbackEl = document.getElementById('sports-feedback');
+
+            function createSportsGame() {
+                equationsContainer.innerHTML = '';
+                sportsFeedbackEl.textContent = '';
+                sportsFormulas.forEach(sport => {
+                    const row = document.createElement('div');
+                    row.className = 'equation-row';
+                    row.innerHTML = `
+                        <span class="equation-formula">${sport.formula}</span>
+                        <span class="equation-equals">=</span>
+                        <input type="text" id="sport-input-${sport.id}" placeholder="Escribe el deporte..." autocomplete="off">
+                        <span class="equation-feedback" id="sport-feedback-icon-${sport.id}"></span>
+                    `;
+                    equationsContainer.appendChild(row);
+                });
+            }
+
+            function checkSportsAnswers() {
+                let correctCount = 0;
+                let newCorrectAnswers = 0;
+                sportsFormulas.forEach(sport => {
+                    const input = document.getElementById(`sport-input-${sport.id}`);
+                    const feedbackIcon = document.getElementById(`sport-feedback-icon-${sport.id}`);
+                    const userAnswer = input.value.toLowerCase().trim();
+                    const wasCorrect = input.classList.contains('correct');
+
+                    input.classList.remove('correct', 'wrong');
+                    
+                    if (userAnswer === '') {
+                        feedbackIcon.textContent = '';
+                        return;
+                    }
+
+                    if (sport.answers.includes(userAnswer)) {
+                        if (!wasCorrect) {
+                            newCorrectAnswers++;
+                        }
+                        input.classList.add('correct');
+                        feedbackIcon.textContent = '✔️';
+                        correctCount++;
+                    } else {
+                        input.classList.add('wrong');
+                        feedbackIcon.textContent = '❌';
+                    }
+                });
+
+                if (newCorrectAnswers > 0) {
+                    playCowSound();
+                }
+
+                if (correctCount === sportsFormulas.length) {
+                    sportsFeedbackEl.textContent = "¡Genial! ¡Has acertado todos los deportes!";
+                    sportsFeedbackEl.style.color = '#4caf50';
+                } else {
+                    sportsFeedbackEl.textContent = `Aciertos: ${correctCount} de ${sportsFormulas.length}. ¡Sigue intentándolo!`;
+                    sportsFeedbackEl.style.color = '#1a237e';
+                }
+            }
+            
+            // =======================================================
+            // --- ASIGNACIÓN DE EVENTOS E INICIALIZACIÓN ---
+            // =======================================================
+            resetVocabButton.addEventListener('click', initVocabGame);
+            checkSportsButton.addEventListener('click', checkSportsAnswers);
+            resetSportsButton.addEventListener('click', createSportsGame);
+
+            initVocabGame();
+            createSportsGame();
+        });
+    </script>
+
+</body>
+</html>
